@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Sistema Restaurante</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body {
+  font-family: Arial;
+  margin: 0;
+  background: url("imagenes/fondohambur.jpg") center/cover no-repeat;
+}
+
+body::before {
+  content:"";
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.4);
+  z-index:-1;
+}
+
+header {
+  background:#b90000;
+  color:white;
+  padding:16px;
+  text-align:center;
+  font-size:30px;
+  font-weight:700;
+}
+
+.ipad {
+  max-width: 1200px;
+  margin: 20px auto;
+  background:white;
+  border-radius:20px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.3);
+  padding:10px;
+  overflow:auto;
+}
+
+.container {
+  display: flex;
+  flex-wrap: nowrap; /* Mantiene menu y ticket lado a lado */
+}
+
+.menu {
+  width: 60%;
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 20px;
+  padding: 20px;
+}
+
+.card {
+  background:white;
+  border-radius:10px;
+  padding:10px;
+  text-align:center;
+  box-shadow:0 0 10px rgba(90, 0, 0, 0.52);
+}
+
+.card img {
+  width:100%;
+  height:120px;
+  object-fit:cover;
+  border-radius:10px;
+}
+
+.card button {
+  margin-top:10px;
+  padding:8px;
+  background:#9d0707;
+  color:white;
+  border:none;
+  border-radius:5px;
+  cursor:pointer;
+  font-size: 17px;
+  width: 100%;
+}
+
+.ticket {
+  width: 40%;
+  background:white;
+  padding:23px;
+  box-shadow:-3px 0 10px #ff0000;
+  min-width:250px;
+}
+
+.ticket ul {
+  list-style:none;
+  padding:0;
+}
+
+.total {
+  font-size:25px;
+  font-weight:bold;
+  margin-top:20px;
+}
+
+.btn {
+  margin-top:10px;
+  padding:10px;
+  width:100%;
+  font-size:17px;
+  font-weight:bold;
+  background:#b90000;
+  color:white;
+  border:none;
+  cursor:pointer;
+}
+
+select {
+  padding:5px;
+  margin-bottom:10px;
+  width:100%;
+  font-size:16px;
+}
+
+label {
+  font-size:18px;
+}
+
+.preciohamburguesa, .preciodoble, .preciopapas, .preciorefresco, .precionuggets {
+  font-size:16px;
+  margin:5px 0 10px 0;
+}
+
+/* Responsive para celular */
+@media screen and (max-width: 768px) {
+  .container {
+    flex-direction: column; /* ticket pasa debajo del menu */
+  }
+
+  .menu {
+    width: 100%;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+
+  .ticket {
+    width: 100%;
+    margin-top: 20px;
+  }
+
+  header {
+    font-size:24px;
+  }
+
+  .card img {
+    height:100px;
+  }
+}
+</style>
+</head>
+<body>
+<div class="ipad">
+<header>🍔 Sistema Hamburguesas</header>
+
+<div class="container">
+<div class="menu">
+  <div class="card">
+    <img src="imagenes/hamburguesa.jpg">
+    <h3>Hamburguesa</h3>
+    <p class="preciohamburguesa">$90</p>
+    <button onclick="agregar('Hamburguesa',90)">Agregar</button>
+  </div>
+
+  <div class="card">
+    <img src="imagenes/hamburguesa-doble.jpg">
+    <h3>Hamburguesa Doble</h3>
+    <p class="preciodoble">$110</p>
+    <button onclick="agregar('Hamburguesa doble',110)">Agregar</button>
+  </div>
+
+  <div class="card">
+    <img src="imagenes/papas.jpeg">
+    <h3>Papas</h3>
+    <p class="preciopapas">$35</p>
+    <button onclick="agregar('Papas',35)">Agregar</button>
+  </div>
+
+  <div class="card">
+    <img src="imagenes/refresco.jpg">
+    <h3>Refresco</h3>
+    <p class="preciorefresco">$25</p>
+    <button onclick="agregar('Refresco',25)">Agregar</button>
+  </div>
+
+  <div class="card">
+    <img src="imagenes/nuggets.jpeg">
+    <h3>Nuggets</h3>
+    <p class="precionuggets">$70</p>
+    <button onclick="agregar('Nuggets',70)">Agregar</button>
+  </div>
+</div>
+
+<div class="ticket">
+<h2>🧾 Ticket</h2>
+
+<label>Mesa:</label>
+<select id="mesa">
+<option>Mesa 1</option><option>Mesa 2</option><option>Mesa 3</option>
+<option>Mesa 4</option><option>Mesa 5</option><option>Mesa 6</option>
+<option>Mesa 7</option><option>Mesa 8</option><option>Mesa 9</option>
+<option>Mesa 10</option>
+</select>
+
+<ul id="lista"></ul>
+
+<div class="total">Total: $<span id="total">0</span></div>
+
+<button class="btn" onclick="imprimir()">Imprimir Ticket</button>
+<button class="btn" onclick="nueva()">Nueva Orden</button>
+</div>
+</div>
+</div>
+
+<script>
+let total = 0;
+let pedido = {};
+
+function agregar(producto, precio){
+  if(pedido[producto]){
+    pedido[producto].cantidad++;
+  } else {
+    pedido[producto] = { precio: precio, cantidad:1 };
+  }
+  actualizarTicket();
+}
+
+function actualizarTicket(){
+  let lista = document.getElementById("lista");
+  lista.innerHTML = "";
+  total = 0;
+
+  for(let producto in pedido){
+    let item = pedido[producto];
+    let subtotal = item.precio * item.cantidad;
+    total += subtotal;
+
+    let li = document.createElement("li");
+    li.innerHTML = `
+      ${producto} 
+      <button onclick="restar('${producto}')">➖</button>
+      x${item.cantidad}
+      <button onclick="sumar('${producto}')">➕</button>
+      - $${subtotal}
+      <button onclick="eliminar('${producto}')">❌</button>
+    `;
+    lista.appendChild(li);
+  }
+
+  document.getElementById("total").innerText = total;
+}
+
+function sumar(producto){
+  pedido[producto].cantidad++;
+  actualizarTicket();
+}
+
+function restar(producto){
+  pedido[producto].cantidad--;
+  if(pedido[producto].cantidad <= 0){
+    delete pedido[producto];
+  }
+  actualizarTicket();
+}
+
+function eliminar(producto){
+  delete pedido[producto];
+  actualizarTicket();
+}
+
+function nueva(){
+  pedido = {};
+  total = 0;
+  document.getElementById("lista").innerHTML = "";
+  document.getElementById("total").innerText = 0;
+}
+
+function imprimir(){
+  window.print();
+}
+</script>
+</body>
+</html>
